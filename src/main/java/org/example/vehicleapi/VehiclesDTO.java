@@ -13,7 +13,7 @@ public record VehiclesDTO(
         @Max(value = 2026, message = "Year cannot be in the future")
         Integer year,
 
-        @NotNull
+        @NotBlank
         String plate,
 
         @Size(min = 17, max = 17, message = "VIN must be exactly 17 characters")
