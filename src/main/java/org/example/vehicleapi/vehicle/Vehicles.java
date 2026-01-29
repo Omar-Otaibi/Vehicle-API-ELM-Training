@@ -1,25 +1,27 @@
-package org.example.vehicleapi;
+package org.example.vehicleapi.vehicle;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.example.vehicleapi.owner.Owner;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 public class Vehicles {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Column( length = 20, nullable = false)
     private String brand;
     @Column(length = 20)
     private String model;
     @Column(length = 4)
     private int year;
-    @Column(length = 6, unique = true)
+    @Column(length = 6)
     private String plate;
-    @Column(length = 17, unique = true)
+    @Column(length = 17)
     private String vin;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private Owner owner;
 }

@@ -1,4 +1,4 @@
-package org.example.vehicleapi;
+package org.example.vehicleapi.vehicle;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
