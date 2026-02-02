@@ -29,4 +29,10 @@ public class OwnerController {
         List<OwnerDTO> savedOwners = ownerService.getAllOwners();
         return new ResponseEntity<>(savedOwners, HttpStatus.OK);
     }
+
+    @PostMapping("/api/getOwnerInfo")
+    public ResponseEntity<OwnerDTO> getOwnerInfo(@RequestBody long ownerId) {
+        OwnerDTO ownerInfo = ownerService.getOwnerInfo(ownerId);
+        return  new ResponseEntity<>(ownerInfo, HttpStatus.OK);
+    }
 }

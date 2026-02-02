@@ -3,6 +3,9 @@ package org.example.vehicleapi.vehicle;
 import jakarta.transaction.Transactional;
 import org.example.vehicleapi.owner.Owner;
 import org.example.vehicleapi.owner.OwnerRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,11 +38,32 @@ public class VehicleService {
         Vehicles save = repository.save(vehicle);
         return convertVehicleToDTO(save);
     }
+    public Page<VehiclesDTO> getVehicles(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(this::convertVehicleToDTO);
+    }
 
-    public List<VehiclesDTO> getVehicles() {
-        return repository.findAll().stream()
+//    public List<VehiclesDTO> getVehicles() {
+//        return repository.findAll().stream()
+//                .map(this::convertVehicleToDTO)
+//                .collect(Collectors.toList());
+//    }
+
+    public List<VehiclesDTO> searchVehiclesByPlate(String plateQuery) {
+        // Uses the new repository method to filter
+        return repository.findByPlateContaining(plateQuery).stream()
                 .map(this::convertVehicleToDTO)
                 .collect(Collectors.toList());
+    }
+    public List<VehiclesDTO> getVehiclesSortedByBrand() {
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "brand")).stream()
+                .map(this::convertVehicleToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // N + 1 case problem
+    public Vehicles listByVin(String vin){
+        return repository.findByVin(vin).orElseThrow();
     }
 
     private VehiclesDTO convertVehicleToDTO(Vehicles v) {

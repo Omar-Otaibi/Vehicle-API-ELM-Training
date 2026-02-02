@@ -6,13 +6,14 @@ import org.example.vehicleapi.vehicle.VehiclesDTO;
 import java.util.List;
 
 public record OwnerDTO(
-        Long id,
+                Long id,
 
-        @NotBlank
-        String firstName,
+                @NotBlank String firstName,
 
-        @NotBlank
-        String lastName,
+                @NotBlank String lastName,
 
-        List<VehiclesDTO> vehicles
-) {}
+                List<VehiclesDTO> vehicles) {
+        public OwnerDTO(Long id, String firstName, String lastName) {
+                this(id, firstName, lastName, null);
+        }
+}
