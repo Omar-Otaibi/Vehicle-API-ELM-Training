@@ -1,10 +1,12 @@
 package org.example.vehicleapi.owner;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
 import org.example.vehicleapi.vehicle.VehiclesDTO;
 
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record OwnerDTO(
                 Long id,
 

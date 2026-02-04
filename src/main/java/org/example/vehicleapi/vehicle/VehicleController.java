@@ -46,7 +46,33 @@ public class VehicleController {
 
     // N + 1 case problem  - - - - - - - - - - - - - - - - - -
     @GetMapping("/searchByVin")
-    public ResponseEntity<Vehicles> searchByvin(@RequestParam String vin) {
+    public ResponseEntity<VehiclesDTO> searchByVin(@RequestParam String vin) {
         return ResponseEntity.ok(vehicleService.listByVin(vin));
+    }
+    //vehicle id
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<VehiclesDTO> updateVehicle(
+            @PathVariable Long id,
+            @RequestBody VehiclesDTO vehiclesDTO) {
+
+        //pass the partial DTO to the service
+        return ResponseEntity.ok(vehicleService.updateVehicle(id, vehiclesDTO));
+    }
+
+    @GetMapping("/searchVehicles")
+    public ResponseEntity<Page<VehiclesDTO>> getVehicles(
+            @RequestParam(required = false) String search, // General search (brand/model/vin)
+            @RequestParam(required = false) Integer year,  // Specific filter
+            @RequestParam(required = false) String plate,
+            @RequestParam(required = false) String ownerName,
+            Pageable pageable) {
+
+        return ResponseEntity.ok(vehicleService.searchVehicles(search, year, plate,ownerName, pageable));
+    }
+
+    @DeleteMapping("/deleteVehicle/{id}")
+    public ResponseEntity<String> deleteVehicle(@PathVariable Long id) {
+        vehicleService.deleteVehicle(id);
+        return  ResponseEntity.noContent().build();
     }
 }

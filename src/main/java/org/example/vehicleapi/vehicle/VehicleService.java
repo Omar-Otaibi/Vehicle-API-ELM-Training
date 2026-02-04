@@ -6,9 +6,11 @@ import org.example.vehicleapi.owner.OwnerRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,12 +45,6 @@ public class VehicleService {
                 .map(this::convertVehicleToDTO);
     }
 
-//    public List<VehiclesDTO> getVehicles() {
-//        return repository.findAll().stream()
-//                .map(this::convertVehicleToDTO)
-//                .collect(Collectors.toList());
-//    }
-
     public List<VehiclesDTO> searchVehiclesByPlate(String plateQuery) {
         // Uses the new repository method to filter
         return repository.findByPlateContaining(plateQuery).stream()
@@ -61,13 +57,67 @@ public class VehicleService {
                 .collect(Collectors.toList());
     }
 
-    // N + 1 case problem
-    public Vehicles listByVin(String vin){
-        return repository.findByVin(vin).orElseThrow();
+    public VehiclesDTO listByVin(String vin){
+        Vehicles vehicle = repository.findByVin(vin).orElseThrow(() -> new RuntimeException("Vehicle not found"));
+        return  convertVehicleToDTO(vehicle);
     }
 
     private VehiclesDTO convertVehicleToDTO(Vehicles v) {
         return new VehiclesDTO(v.getId(), v.getBrand(), v.getModel(), v.getYear(),
                 v.getPlate(), v.getVin(), v.getOwner() != null ? v.getOwner().getId() : null);
     }
+
+    public VehiclesDTO updateVehicle(Long id, VehiclesDTO dto) {
+        //check vehicle
+        Vehicles existingVehicle = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
+
+        //checks every field
+        if (dto.brand() != null && !dto.brand().isBlank()) {
+            existingVehicle.setBrand(dto.brand());
+        }
+        if (dto.model() != null && !dto.model().isBlank()) {
+            existingVehicle.setModel(dto.model());
+        }
+        if (dto.year() != null) {
+            existingVehicle.setYear(dto.year());
+        }
+        if (dto.plate() != null && !dto.plate().isBlank()) {
+            existingVehicle.setPlate(dto.plate());
+        }
+        if (dto.vin() != null && !dto.vin().isBlank()) {
+            existingVehicle.setVin(dto.vin());
+        }
+
+        if (dto.ownerId() != null) {
+            Owner newOwner = ownerRepository.findById(dto.ownerId())
+                    .orElseThrow(() -> new RuntimeException("Owner not found"));
+            existingVehicle.setOwner(newOwner);
+        }
+        Vehicles updatedVehicle = repository.save(existingVehicle);
+        return convertVehicleToDTO(updatedVehicle);
+    }
+
+    public Page<VehiclesDTO> searchVehicles(String search, Integer year, String plate,String ownerName, Pageable pageable) {
+        // Start with an empty specification
+        Specification<Vehicles> spec = Specification.unrestricted();
+
+        // Chain the rules dynamically
+        if (search != null) spec = spec.and(Objects.requireNonNull(VehicleSpecs.filterByFields(search)));
+        if (year != null) spec = spec.and(VehicleSpecs.hasYear(year));
+        if (plate != null) spec = spec.and(VehicleSpecs.plateContains(plate));
+        if (ownerName != null) spec = spec.and(VehicleSpecs.hasOwnerName(ownerName));
+
+        // Execute query with Filter + Pagination + Sort
+        return repository.findAll(spec, pageable)
+                .map(this::convertVehicleToDTO);
+    }
+
+    public void deleteVehicle(Long id) {
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Vehicle not found!");
+        }
+        repository.deleteById(id);
+    }
+
 }
