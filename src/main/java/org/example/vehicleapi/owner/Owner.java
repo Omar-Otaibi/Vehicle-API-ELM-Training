@@ -4,13 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.example.vehicleapi.vehicle.Vehicles;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @Entity
-public class Owner implements Serializable {
+public class Owner {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

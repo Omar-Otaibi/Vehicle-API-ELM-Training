@@ -24,11 +24,6 @@ public class VehicleController {
         return new ResponseEntity<>(savedVehicle,HttpStatus.CREATED);
     }
 
-//    @GetMapping("/getVehicles")
-//    public ResponseEntity<List<VehiclesDTO>> getVehicles() {
-//        return ResponseEntity.ok(vehicleService.getVehicles());
-//    }
-
     @GetMapping("/getVehicles")
     public ResponseEntity<Page<VehiclesDTO>> getVehicles(@PageableDefault(size = 15) Pageable pageable) {
         return ResponseEntity.ok(vehicleService.getVehicles(pageable));
@@ -44,16 +39,15 @@ public class VehicleController {
         return ResponseEntity.ok(vehicleService.searchVehiclesByPlate(plate));
     }
 
-    // N + 1 case problem  - - - - - - - - - - - - - - - - - -
     @GetMapping("/searchByVin")
     public ResponseEntity<VehiclesDTO> searchByVin(@RequestParam String vin) {
         return ResponseEntity.ok(vehicleService.listByVin(vin));
     }
     //vehicle id
     @PatchMapping("/update/{id}")
-    public ResponseEntity<VehiclesDTO> updateVehicle(
+    public ResponseEntity<UpdateVehicleDTO> updateVehicle(
             @PathVariable Long id,
-            @RequestBody VehiclesDTO vehiclesDTO) {
+            @Valid @RequestBody UpdateVehicleDTO vehiclesDTO) {
 
         //pass the partial DTO to the service
         return ResponseEntity.ok(vehicleService.updateVehicle(id, vehiclesDTO));
@@ -74,5 +68,37 @@ public class VehicleController {
     public ResponseEntity<String> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicle(id);
         return  ResponseEntity.noContent().build();
+    }
+
+    //Top 3 Newest Cars
+    @GetMapping("/vehicles/newest")
+    public ResponseEntity<List<VehiclesDTO>> getNewestVehicles() {
+        return ResponseEntity.ok(vehicleService.getNewestVehicles());
+    }
+
+    //(JPQL)
+    @GetMapping("/vehicles/filter")
+    public ResponseEntity<List<VehiclesDTO>> filterByBrandAndYear(
+            @RequestParam String brand,
+            @RequestParam int year) {
+        return ResponseEntity.ok(vehicleService.getVehiclesByBrandAndYear(brand, year));
+    }
+
+    //Native SQL Search
+    @GetMapping("/vehicles/model/{model}")
+    public ResponseEntity<List<VehiclesDTO>> getByModelNative(@PathVariable String model) {
+        return ResponseEntity.ok(vehicleService.getVehiclesByModel(model));
+    }
+
+    //Distinct Search
+    @GetMapping("/vehicles/distinct/{brand}")
+    public ResponseEntity<List<VehiclesDTO>> getDistinctByBrand(@PathVariable String brand) {
+        return ResponseEntity.ok(vehicleService.getDistinctVehiclesByBrand(brand));
+    }
+
+    //Search by Owner First Name
+    @GetMapping("/vehicles/owner/{name}")
+    public ResponseEntity<List<VehiclesDTO>> getByOwnerName(@PathVariable String name) {
+        return ResponseEntity.ok(vehicleService.getVehiclesByOwnerName(name));
     }
 }

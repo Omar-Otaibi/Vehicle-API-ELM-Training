@@ -1,7 +1,6 @@
 package org.example.vehicleapi.vehicle;
 
 import jakarta.transaction.Transactional;
-import org.example.vehicleapi.owner.Owner;
 import org.example.vehicleapi.owner.OwnerRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -26,9 +24,12 @@ public class VehicleService {
     }
 
     public VehiclesDTO createVehicle(VehiclesDTO DTO) {
-        Owner owner = ownerRepository.findById(DTO.ownerId())
+        var owner = ownerRepository.findById(DTO.ownerId())
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
-
+        var exists = repository.findByVin(DTO.vin());
+        if(exists.isPresent()){
+            throw new RuntimeException("vehicle duplicated");
+        }
         Vehicles vehicle = new Vehicles();
         vehicle.setBrand(DTO.brand());
         vehicle.setModel(DTO.model());
@@ -49,12 +50,45 @@ public class VehicleService {
         // Uses the new repository method to filter
         return repository.findByPlateContaining(plateQuery).stream()
                 .map(this::convertVehicleToDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
     public List<VehiclesDTO> getVehiclesSortedByBrand() {
         return repository.findAll(Sort.by(Sort.Direction.ASC, "brand")).stream()
                 .map(this::convertVehicleToDTO)
-                .collect(Collectors.toList());
+                .toList();
+    }
+    public List<VehiclesDTO> getNewestVehicles() {
+        return repository.findTop3ByOrderByYearDesc().stream()
+                .map(this::convertVehicleToDTO)
+                .toList();
+    }
+
+    // JPQL
+    public List<VehiclesDTO> getVehiclesByBrandAndYear(String brand, int minYear) {
+        return repository.findByBrandAndNewer(brand, minYear).stream()
+                .map(this::convertVehicleToDTO)
+                .toList();
+    }
+
+    //Native SQL
+    public List<VehiclesDTO> getVehiclesByModel(String model) {
+        return repository.findByModelNative(model).stream()
+                .map(this::convertVehicleToDTO)
+                .toList();
+    }
+
+    //Distinct
+    public List<VehiclesDTO> getDistinctVehiclesByBrand(String brand) {
+        return repository.findDistinctByBrand(brand).stream()
+                .map(this::convertVehicleToDTO)
+                .toList();
+    }
+
+    //Search by Owner Name
+    public List<VehiclesDTO> getVehiclesByOwnerName(String firstName) {
+        return repository.findByOwner_FirstName(firstName).stream()
+                .map(this::convertVehicleToDTO)
+                .toList();
     }
 
     public VehiclesDTO listByVin(String vin){
@@ -66,8 +100,12 @@ public class VehicleService {
         return new VehiclesDTO(v.getId(), v.getBrand(), v.getModel(), v.getYear(),
                 v.getPlate(), v.getVin(), v.getOwner() != null ? v.getOwner().getId() : null);
     }
+    private UpdateVehicleDTO convertUpdatedVehicleToDTO(Vehicles v) {
+        return new UpdateVehicleDTO(v.getBrand(), v.getModel(), v.getYear(),
+                v.getPlate(), v.getVin(), v.getOwner() != null ? v.getOwner().getId() : null);
+    }
 
-    public VehiclesDTO updateVehicle(Long id, VehiclesDTO dto) {
+    public UpdateVehicleDTO updateVehicle(Long id, UpdateVehicleDTO dto) {
         //check vehicle
         Vehicles existingVehicle = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
@@ -90,12 +128,12 @@ public class VehicleService {
         }
 
         if (dto.ownerId() != null) {
-            Owner newOwner = ownerRepository.findById(dto.ownerId())
+            var newOwner = ownerRepository.findById(dto.ownerId())
                     .orElseThrow(() -> new RuntimeException("Owner not found"));
             existingVehicle.setOwner(newOwner);
         }
         Vehicles updatedVehicle = repository.save(existingVehicle);
-        return convertVehicleToDTO(updatedVehicle);
+        return convertUpdatedVehicleToDTO(updatedVehicle);
     }
 
     public Page<VehiclesDTO> searchVehicles(String search, Integer year, String plate,String ownerName, Pageable pageable) {
