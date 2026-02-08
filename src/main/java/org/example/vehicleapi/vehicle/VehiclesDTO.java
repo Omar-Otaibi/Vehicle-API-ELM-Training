@@ -1,8 +1,10 @@
-package org.example.vehicleapi;
+package org.example.vehicleapi.vehicle;
 
 import jakarta.validation.constraints.*;
 
 public record VehiclesDTO(
+        Long id,
+
         @NotBlank(message = "cannot be empty")
         String brand,
 
@@ -18,6 +20,10 @@ public record VehiclesDTO(
 
         @Size(min = 17, max = 17, message = "VIN must be exactly 17 characters")
         @NotBlank(message = "VIN is required")
-        String vin
+        String vin,
+
+        @NotNull
+        Long ownerId
+
 )
 {}
