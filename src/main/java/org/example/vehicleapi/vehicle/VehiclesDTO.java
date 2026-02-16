@@ -3,7 +3,7 @@ package org.example.vehicleapi.vehicle;
 import jakarta.validation.constraints.*;
 
 public record VehiclesDTO(
-        Long id,
+//        Long id,
 
         @NotBlank(message = "cannot be empty")
         String brand,

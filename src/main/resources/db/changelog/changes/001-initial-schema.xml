@@ -40,11 +40,11 @@
                 <constraints foreignKeyName="fk_vehicle_owner" references="owner(id)"/>
             </column>
 
-            <column name="created" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+            <column name="created" type="DATETIMEOFFSET" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
 
-            <column name="last_modified" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+            <column name="last_modified" type="DATETIMEOFFSET" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
 
