@@ -2,6 +2,7 @@ package org.example.vehicleapi.vehicle;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.vehicleapi.exception.VehicleNotFoundException;
 import org.example.vehicleapi.owner.OwnerRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -85,14 +86,14 @@ public class VehicleService {
     }
 
     public VehiclesDTO listByVin(String vin){
-        Vehicles vehicle = repository.findByVin(vin).orElseThrow(() -> new RuntimeException("Vehicle not found"));
+        Vehicles vehicle = repository.findByVin(vin).orElseThrow(() -> new VehicleNotFoundException("Vehicle not found"));
         return  vehicleMapper.toDTO(vehicle);
     }
 
     public UpdateVehicleDTO updateVehicle(Long id, UpdateVehicleDTO dto) {
         //check vehicle
         Vehicles existingVehicle = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
+                .orElseThrow(() -> new VehicleNotFoundException("Vehicle not found with id: " + id));
 
         vehicleMapper.updateVehicleFromDto(dto, existingVehicle);
 
@@ -122,7 +123,7 @@ public class VehicleService {
 
     public void deleteVehicle(Long id) {
         if (!repository.existsById(id)) {
-            throw new RuntimeException("Vehicle not found!");
+            throw new VehicleNotFoundException("Vehicle not found!");
         }
         repository.deleteById(id);
     }
