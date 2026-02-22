@@ -23,7 +23,7 @@ public interface VehicleRepository extends JpaRepository<Vehicles, Long>, JpaSpe
     List<Vehicles> findByBrandAndNewer(@Param("brand") String brand, @Param("year") int year);
 
     //Native Query Search by model using the actual table name 'vehicles'
-    @Query(value = "SELECT * FROM vehicles WHERE model = :model", nativeQuery = true)
+    @Query(value = "SELECT * FROM vehicles WHERE model LIKE %:model%", nativeQuery = true)
     List<Vehicles> findByModelNative(@Param("model") String model);
 
     List<Vehicles> findDistinctByBrand(String brand);

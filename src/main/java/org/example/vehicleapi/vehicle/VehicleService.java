@@ -1,6 +1,8 @@
 package org.example.vehicleapi.vehicle;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.example.vehicleapi.exception.VehicleNotFoundException;
 import org.example.vehicleapi.owner.OwnerRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,15 +15,12 @@ import java.util.Objects;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class VehicleService {
 
     private final VehicleRepository repository;
     private final OwnerRepository ownerRepository;
-
-    public VehicleService(VehicleRepository repository, OwnerRepository ownerRepository) {
-        this.repository = repository;
-        this.ownerRepository = ownerRepository;
-    }
+    private final VehicleMapper vehicleMapper;
 
     public VehiclesDTO createVehicle(VehiclesDTO DTO) {
         var owner = ownerRepository.findById(DTO.ownerId())
@@ -30,102 +29,73 @@ public class VehicleService {
         if(exists.isPresent()){
             throw new RuntimeException("vehicle duplicated");
         }
-        Vehicles vehicle = new Vehicles();
-        vehicle.setBrand(DTO.brand());
-        vehicle.setModel(DTO.model());
-        vehicle.setYear(DTO.year());
-        vehicle.setPlate(DTO.plate());
-        vehicle.setVin(DTO.vin());
-        vehicle.setOwner(owner);
 
-        Vehicles save = repository.save(vehicle);
-        return convertVehicleToDTO(save);
+        Vehicles vehicle = vehicleMapper.toEntity(DTO, owner);
+
+        return vehicleMapper.toDTO(repository.save(vehicle));
     }
+
     public Page<VehiclesDTO> getVehicles(Pageable pageable) {
         return repository.findAll(pageable)
-                .map(this::convertVehicleToDTO);
+                .map(vehicleMapper::toDTO);
     }
 
     public List<VehiclesDTO> searchVehiclesByPlate(String plateQuery) {
         // Uses the new repository method to filter
         return repository.findByPlateContaining(plateQuery).stream()
-                .map(this::convertVehicleToDTO)
+                .map(vehicleMapper::toDTO)
                 .toList();
     }
     public List<VehiclesDTO> getVehiclesSortedByBrand() {
         return repository.findAll(Sort.by(Sort.Direction.ASC, "brand")).stream()
-                .map(this::convertVehicleToDTO)
+                .map(vehicleMapper::toDTO)
                 .toList();
     }
     public List<VehiclesDTO> getNewestVehicles() {
         return repository.findTop3ByOrderByYearDesc().stream()
-                .map(this::convertVehicleToDTO)
+                .map(vehicleMapper::toDTO)
                 .toList();
     }
 
     // JPQL
     public List<VehiclesDTO> getVehiclesByBrandAndYear(String brand, int minYear) {
         return repository.findByBrandAndNewer(brand, minYear).stream()
-                .map(this::convertVehicleToDTO)
+                .map(vehicleMapper::toDTO)
                 .toList();
     }
 
     //Native SQL
     public List<VehiclesDTO> getVehiclesByModel(String model) {
         return repository.findByModelNative(model).stream()
-                .map(this::convertVehicleToDTO)
+                .map(vehicleMapper::toDTO)
                 .toList();
     }
 
     //Distinct
     public List<VehiclesDTO> getDistinctVehiclesByBrand(String brand) {
         return repository.findDistinctByBrand(brand).stream()
-                .map(this::convertVehicleToDTO)
+                .map(vehicleMapper::toDTO)
                 .toList();
     }
 
     //Search by Owner Name
     public List<VehiclesDTO> getVehiclesByOwnerName(String firstName) {
         return repository.findByOwner_FirstName(firstName).stream()
-                .map(this::convertVehicleToDTO)
+                .map(vehicleMapper::toDTO)
                 .toList();
     }
 
     public VehiclesDTO listByVin(String vin){
-        Vehicles vehicle = repository.findByVin(vin).orElseThrow(() -> new RuntimeException("Vehicle not found"));
-        return  convertVehicleToDTO(vehicle);
-    }
-
-    private VehiclesDTO convertVehicleToDTO(Vehicles v) {
-        return new VehiclesDTO(v.getId(), v.getBrand(), v.getModel(), v.getYear(),
-                v.getPlate(), v.getVin(), v.getOwner() != null ? v.getOwner().getId() : null);
-    }
-    private UpdateVehicleDTO convertUpdatedVehicleToDTO(Vehicles v) {
-        return new UpdateVehicleDTO(v.getBrand(), v.getModel(), v.getYear(),
-                v.getPlate(), v.getVin(), v.getOwner() != null ? v.getOwner().getId() : null);
+        Vehicles vehicle = repository.findByVin(vin).orElseThrow(() -> new VehicleNotFoundException("Vehicle not found"));
+        return  vehicleMapper.toDTO(vehicle);
     }
 
     public UpdateVehicleDTO updateVehicle(Long id, UpdateVehicleDTO dto) {
         //check vehicle
         Vehicles existingVehicle = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
+                .orElseThrow(() -> new VehicleNotFoundException("Vehicle not found with id: " + id));
 
-        //checks every field
-        if (dto.brand() != null && !dto.brand().isBlank()) {
-            existingVehicle.setBrand(dto.brand());
-        }
-        if (dto.model() != null && !dto.model().isBlank()) {
-            existingVehicle.setModel(dto.model());
-        }
-        if (dto.year() != null) {
-            existingVehicle.setYear(dto.year());
-        }
-        if (dto.plate() != null && !dto.plate().isBlank()) {
-            existingVehicle.setPlate(dto.plate());
-        }
-        if (dto.vin() != null && !dto.vin().isBlank()) {
-            existingVehicle.setVin(dto.vin());
-        }
+        vehicleMapper.updateVehicleFromDto(dto, existingVehicle);
 
         if (dto.ownerId() != null) {
             var newOwner = ownerRepository.findById(dto.ownerId())
@@ -133,7 +103,7 @@ public class VehicleService {
             existingVehicle.setOwner(newOwner);
         }
         Vehicles updatedVehicle = repository.save(existingVehicle);
-        return convertUpdatedVehicleToDTO(updatedVehicle);
+        return vehicleMapper.toUpdateDTO(updatedVehicle);
     }
 
     public Page<VehiclesDTO> searchVehicles(String search, Integer year, String plate,String ownerName, Pageable pageable) {
@@ -148,12 +118,12 @@ public class VehicleService {
 
         // Execute query with Filter + Pagination + Sort
         return repository.findAll(spec, pageable)
-                .map(this::convertVehicleToDTO);
+                .map(vehicleMapper::toDTO);
     }
 
     public void deleteVehicle(Long id) {
         if (!repository.existsById(id)) {
-            throw new RuntimeException("Vehicle not found!");
+            throw new VehicleNotFoundException("Vehicle not found!");
         }
         repository.deleteById(id);
     }

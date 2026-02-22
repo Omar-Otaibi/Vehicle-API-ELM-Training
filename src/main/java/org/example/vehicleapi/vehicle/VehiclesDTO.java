@@ -1,9 +1,10 @@
 package org.example.vehicleapi.vehicle;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 
 public record VehiclesDTO(
-        Long id,
+//        Long id,
 
         @NotBlank(message = "cannot be empty")
         String brand,
@@ -26,4 +27,14 @@ public record VehiclesDTO(
         Long ownerId
 
 )
-{}
+{
+        public String getDisplayName() {
+                return year + " " + brand + " " + model;
+        }
+
+        @JsonProperty("maskedVin")
+        public String getMaskedVin() {
+                if (vin == null || vin.length() < 4) return vin;
+                return "*".repeat(vin.length() - 4) + vin.substring(vin.length() - 4);
+        }
+}
