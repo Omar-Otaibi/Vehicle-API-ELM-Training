@@ -21,6 +21,13 @@ public class OwnerController {
         return new ResponseEntity<>(savedOwner, HttpStatus.CREATED);
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody OwnerDTO loginRequest) {
+        // Since we are reusing OwnerDTO for login, we only care about email and password fields here
+        String tokenResponse = ownerService.login(loginRequest);
+        return ResponseEntity.ok(tokenResponse);
+    }
+
     @GetMapping("/getAllOwners")
     public ResponseEntity<List<OwnerDTO>> getAllOwners() {
         List<OwnerDTO> savedOwners = ownerService.getAllOwners();

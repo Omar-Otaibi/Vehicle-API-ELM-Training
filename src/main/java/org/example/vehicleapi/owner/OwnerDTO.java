@@ -14,8 +14,12 @@ public record OwnerDTO(
 
                 @NotBlank String lastName,
 
+                @NotBlank String email,
+
+                @NotBlank String password,
+
                 List<VehiclesDTO> vehicles) {
-        public OwnerDTO(Long id, String firstName, String lastName) {
-                this(id, firstName, lastName, null);
+        public OwnerDTO(Long id, String firstName, String lastName, String email, String password) {
+                this(id, firstName, lastName, email, password, null);
         }
 }
