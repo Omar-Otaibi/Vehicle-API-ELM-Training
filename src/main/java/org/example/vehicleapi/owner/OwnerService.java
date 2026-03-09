@@ -2,6 +2,7 @@ package org.example.vehicleapi.owner;
 
 import lombok.RequiredArgsConstructor;
 
+import org.example.vehicleapi.config.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ public class OwnerService {
     private final OwnerRepository ownerRepository;
     private final OwnerMapper ownerMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public OwnerDTO createOwner(OwnerDTO ownerDTO) {
         if (ownerRepository.findByEmail(ownerDTO.email()).isPresent()) {
@@ -36,7 +38,7 @@ public class OwnerService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        return "Login successful! (Ready for JWT)";
+        return jwtService.generateToken(owner.getEmail());
     }
 
 
