@@ -3,6 +3,10 @@ package org.example.vehicleapi.owner;
 import lombok.RequiredArgsConstructor;
 
 import org.example.vehicleapi.config.JwtService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +16,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class OwnerService {
+public class OwnerService implements UserDetailsService {
     private final OwnerRepository ownerRepository;
     private final OwnerMapper ownerMapper;
     private final PasswordEncoder passwordEncoder;
@@ -50,4 +54,17 @@ public class OwnerService {
         return ownerRepository.findById(ownerId).map(ownerMapper::toDetailedDTO).orElseThrow(() -> new RuntimeException("Owner not found with id: " + ownerId));
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String email) throws  UsernameNotFoundException {
+        // Find the owner in the database
+        Owner owner = ownerRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        // Convert your Owner into a Spring Security User object
+        return User.builder()
+                .username(owner.getEmail())
+                .password(owner.getPassword())
+                .roles("USER")
+                .build();
+    }
 }

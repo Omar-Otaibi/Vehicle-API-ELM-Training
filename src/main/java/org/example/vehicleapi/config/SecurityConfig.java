@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class SecurityConfig {
+public class SecurityConfig{
     private final JwtAuthFilter jwtAuthFilter;
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -24,11 +24,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless REST APIs csrf -> csrf.disable() for later use
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless REST APIs csrf
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/createOwner", "/login").permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                //addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); JWT auth
+        //httpBasic(Customizer.withDefaults()); // Enable basic authentication
         return http.build();
     }
 }
