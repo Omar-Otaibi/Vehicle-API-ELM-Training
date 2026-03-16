@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -48,7 +49,7 @@ public class VehicleController {
     @PatchMapping("/update/{id}")
     public ResponseEntity<UpdateVehicleDTO> updateVehicle(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateVehicleDTO vehiclesDTO) {
+            @Valid @RequestBody UpdateVehicleDTO vehiclesDTO) throws AccessDeniedException {
 
         //pass the partial DTO to the service
         return ResponseEntity.ok(vehicleService.updateVehicle(id, vehiclesDTO));

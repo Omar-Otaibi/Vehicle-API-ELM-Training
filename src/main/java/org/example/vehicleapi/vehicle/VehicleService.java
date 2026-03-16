@@ -8,8 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Objects;
 
@@ -90,10 +92,18 @@ public class VehicleService {
         return  vehicleMapper.toDTO(vehicle);
     }
 
-    public UpdateVehicleDTO updateVehicle(Long id, UpdateVehicleDTO dto) {
+    public UpdateVehicleDTO updateVehicle(Long id, UpdateVehicleDTO dto) throws AccessDeniedException {
         //check vehicle
         Vehicles existingVehicle = repository.findById(id)
                 .orElseThrow(() -> new VehicleNotFoundException("Vehicle not found with id: " + id));
+
+        String currentUserEmail = Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getName();
+
+        // Check if the vehicle's owner email matches the logged-in user's email
+        if (!existingVehicle.getOwner().getEmail().equals(currentUserEmail)) {
+            // If they don't match, instantly block the request!
+            throw new AccessDeniedException("Forbidden: You do not have permission to modify a vehicle you do not own.");
+        }
 
         vehicleMapper.updateVehicleFromDto(dto, existingVehicle);
 
