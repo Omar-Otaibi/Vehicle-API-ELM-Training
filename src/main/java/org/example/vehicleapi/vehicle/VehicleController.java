@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -64,6 +65,7 @@ public class VehicleController {
         return ResponseEntity.ok(vehicleService.searchVehicles(search, year, plate,ownerName, pageable));
     }
 
+    @PreAuthorize("authentication.name == 'admin@example.com'")
     @DeleteMapping("/deleteVehicle/{id}")
     public ResponseEntity<String> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicle(id);
