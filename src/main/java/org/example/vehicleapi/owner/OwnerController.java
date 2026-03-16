@@ -34,9 +34,9 @@ public class OwnerController {
         return new ResponseEntity<>(savedOwners, HttpStatus.OK);
     }
 
-    @GetMapping("/api/getOwnerInfo/{ownerId}")
-    public ResponseEntity<OwnerDTO> getOwnerInfo(@PathVariable long ownerId) {
-        OwnerDTO ownerInfo = ownerService.getOwnerInfo(ownerId);
-        return  new ResponseEntity<>(ownerInfo, HttpStatus.OK);
+    @GetMapping("/api/getOwnerInfo")
+    public ResponseEntity<OwnerDTO> getOwnerInfo() {
+        OwnerDTO ownerInfo = ownerService.getOwnerInfo();
+        return new ResponseEntity<>(ownerInfo, HttpStatus.OK);
     }
 }
