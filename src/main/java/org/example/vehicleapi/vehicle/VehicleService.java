@@ -23,6 +23,7 @@ public class VehicleService {
     private final VehicleRepository repository;
     private final OwnerRepository ownerRepository;
     private final VehicleMapper vehicleMapper;
+    private final MockApiFeignClient feignClient;
 
     public VehiclesDTO createVehicle(VehiclesDTO DTO) {
         var owner = ownerRepository.findById(DTO.ownerId())
@@ -138,4 +139,25 @@ public class VehicleService {
         repository.deleteById(id);
     }
 
+    public ExternalVehicleInfoDTO getVehicleStatus(Long id) throws AccessDeniedException {
+        //Fetch local vehicle
+        Vehicles vehicle = repository.findById(id)
+                .orElseThrow(() -> new VehicleNotFoundException("Vehicle not found with id: " + id));
+
+        //Resource-Based Authorization
+        String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!vehicle.getOwner().getEmail().equals(currentUserEmail)) {
+            throw new AccessDeniedException("Forbidden: You do not have permission to view this vehicle's status.");
+        }
+
+        //Fetch external data
+        ExternalVehicleDataDTO externalData;
+        try {
+            externalData = feignClient.fetchVehicleStatusById(id);
+        } catch (Exception e) {
+            externalData = new ExternalVehicleDataDTO(String.valueOf(id), 0.0, "API_UNAVAILABLE");
+        }
+
+        return vehicleMapper.toVehicleStatusDTO(vehicle, externalData);
+    }
 }

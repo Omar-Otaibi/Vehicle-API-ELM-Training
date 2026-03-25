@@ -33,4 +33,9 @@ public interface VehicleMapper {
     // Entity -> Update DTO (For returning the result)
     @Mapping(source = "owner.id", target = "ownerId")
     UpdateVehicleDTO toUpdateDTO(Vehicles vehicle);
+
+    @Mapping(source = "externalData.price", target = "price")
+    @Mapping(source = "externalData.status", target = "status")
+    @Mapping(source = "vehicle.owner.id", target = "ownerId")
+    ExternalVehicleInfoDTO toVehicleStatusDTO(Vehicles vehicle, ExternalVehicleDataDTO externalData);
 }

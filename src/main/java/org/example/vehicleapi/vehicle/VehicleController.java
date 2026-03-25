@@ -104,4 +104,9 @@ public class VehicleController {
     public ResponseEntity<List<VehiclesDTO>> getByOwnerName(@PathVariable String name) {
         return ResponseEntity.ok(vehicleService.getVehiclesByOwnerName(name));
     }
+
+    @GetMapping("/getVehicleStatus/{id}")
+    public ResponseEntity<ExternalVehicleInfoDTO> getVehicleStatus(@PathVariable Long id) throws AccessDeniedException {
+        return ResponseEntity.ok(vehicleService.getVehicleStatus(id));
+    }
 }
