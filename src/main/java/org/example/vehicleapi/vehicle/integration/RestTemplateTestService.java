@@ -1,4 +1,4 @@
-package org.example.vehicleapi.vehicle.RestTemplate;
+package org.example.vehicleapi.vehicle.integration;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

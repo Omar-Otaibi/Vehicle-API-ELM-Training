@@ -2,7 +2,7 @@ package org.example.vehicleapi.owner;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
-import org.example.vehicleapi.vehicle.VehiclesDTO;
+import org.example.vehicleapi.vehicle.dto.VehiclesDTO;
 
 import java.util.List;
 

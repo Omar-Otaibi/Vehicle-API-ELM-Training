@@ -2,7 +2,7 @@ package org.example.vehicleapi.owner;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.example.vehicleapi.vehicle.Vehicles;
+import org.example.vehicleapi.vehicle.entities.Vehicle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,5 +24,5 @@ public class Owner {
     private String lastName;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = CascadeType.ALL)
-    private List<Vehicles> vehicles = new ArrayList<>();
+    private List<Vehicle> vehicles = new ArrayList<>();
 }

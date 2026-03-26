@@ -1,4 +1,4 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.integration;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

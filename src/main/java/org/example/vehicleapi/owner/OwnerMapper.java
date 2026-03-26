@@ -1,6 +1,6 @@
 package org.example.vehicleapi.owner;
 
-import org.example.vehicleapi.vehicle.VehicleMapper;
+import org.example.vehicleapi.vehicle.mapper.VehicleMapper;
 import org.mapstruct.*;
 
 @Mapper(

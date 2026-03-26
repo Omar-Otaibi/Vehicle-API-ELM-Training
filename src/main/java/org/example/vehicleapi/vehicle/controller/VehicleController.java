@@ -1,6 +1,10 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.controller;
 
 import jakarta.validation.Valid;
+import org.example.vehicleapi.vehicle.dto.UpdateVehicleDTO;
+import org.example.vehicleapi.vehicle.dto.VehiclesDTO;
+import org.example.vehicleapi.vehicle.integration.ExternalVehicleInfoDTO;
+import org.example.vehicleapi.vehicle.service.VehicleService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

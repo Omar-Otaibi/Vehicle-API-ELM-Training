@@ -1,14 +1,15 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.service;
 
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import org.example.vehicleapi.owner.Owner;
+import org.example.vehicleapi.vehicle.entities.Vehicle;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
 public class VehicleSpecs {
 
-    public static Specification<Vehicles> filterByFields(String text) {
+    public static Specification<Vehicle> filterByFields(String text) {
         if (!StringUtils.hasText(text)) return null;
         String pattern = "%" + text.toLowerCase() + "%";
 
@@ -19,22 +20,22 @@ public class VehicleSpecs {
         );
     }
 
-    public static Specification<Vehicles> hasYear(Integer year) {
+    public static Specification<Vehicle> hasYear(Integer year) {
         return (root, query, cb) -> year == null ? null : cb.equal(root.get("year"), year);
     }
 
-    public static Specification<Vehicles> plateContains(String plate) {
+    public static Specification<Vehicle> plateContains(String plate) {
         return (root, query, cb) ->
                 StringUtils.hasText(plate) ? cb.like(root.get("plate"), "%" + plate + "%") : null;
     }
 
-    public static Specification<Vehicles> hasOwnerName(String name) {
+    public static Specification<Vehicle> hasOwnerName(String name) {
         return (root, query, cb) -> {
             //  Safety Check: If search is empty, don't filter
             if (name == null || name.isBlank()) return null;
 
             // Join the Tables
-            Join<Vehicles, Owner> owner = root.join("owner");
+            Join<Vehicle, Owner> owner = root.join("owner");
 
             // get full name (FirstName + " " + LastName)
             Expression<String> fullName = cb.concat(

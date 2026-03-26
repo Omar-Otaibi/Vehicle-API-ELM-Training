@@ -1,9 +1,17 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.vehicleapi.exception.VehicleNotFoundException;
 import org.example.vehicleapi.owner.OwnerRepository;
+import org.example.vehicleapi.vehicle.entities.Vehicle;
+import org.example.vehicleapi.vehicle.repo.VehicleRepository;
+import org.example.vehicleapi.vehicle.dto.UpdateVehicleDTO;
+import org.example.vehicleapi.vehicle.dto.VehiclesDTO;
+import org.example.vehicleapi.vehicle.integration.ExternalVehicleDataDTO;
+import org.example.vehicleapi.vehicle.integration.ExternalVehicleInfoDTO;
+import org.example.vehicleapi.vehicle.integration.MockApiFeignClient;
+import org.example.vehicleapi.vehicle.mapper.VehicleMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -33,7 +41,7 @@ public class VehicleService {
             throw new RuntimeException("vehicle duplicated");
         }
 
-        Vehicles vehicle = vehicleMapper.toEntity(DTO, owner);
+        Vehicle vehicle = vehicleMapper.toEntity(DTO, owner);
 
         return vehicleMapper.toDTO(repository.save(vehicle));
     }
@@ -89,13 +97,13 @@ public class VehicleService {
     }
 
     public VehiclesDTO listByVin(String vin){
-        Vehicles vehicle = repository.findByVin(vin).orElseThrow(() -> new VehicleNotFoundException("Vehicle not found"));
+        Vehicle vehicle = repository.findByVin(vin).orElseThrow(() -> new VehicleNotFoundException("Vehicle not found"));
         return  vehicleMapper.toDTO(vehicle);
     }
 
     public UpdateVehicleDTO updateVehicle(Long id, UpdateVehicleDTO dto) throws AccessDeniedException {
         //check vehicle
-        Vehicles existingVehicle = repository.findById(id)
+        Vehicle existingVehicle = repository.findById(id)
                 .orElseThrow(() -> new VehicleNotFoundException("Vehicle not found with id: " + id));
 
         String currentUserEmail = Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getName();
@@ -113,13 +121,13 @@ public class VehicleService {
                     .orElseThrow(() -> new RuntimeException("Owner not found"));
             existingVehicle.setOwner(newOwner);
         }
-        Vehicles updatedVehicle = repository.save(existingVehicle);
+        Vehicle updatedVehicle = repository.save(existingVehicle);
         return vehicleMapper.toUpdateDTO(updatedVehicle);
     }
 
     public Page<VehiclesDTO> searchVehicles(String search, Integer year, String plate,String ownerName, Pageable pageable) {
         // Start with an empty specification
-        Specification<Vehicles> spec = Specification.unrestricted();
+        Specification<Vehicle> spec = Specification.unrestricted();
 
         // Chain the rules dynamically
         if (search != null) spec = spec.and(Objects.requireNonNull(VehicleSpecs.filterByFields(search)));
@@ -141,7 +149,7 @@ public class VehicleService {
 
     public ExternalVehicleInfoDTO getVehicleStatus(Long id) throws AccessDeniedException {
         //Fetch local vehicle
-        Vehicles vehicle = repository.findById(id)
+        Vehicle vehicle = repository.findById(id)
                 .orElseThrow(() -> new VehicleNotFoundException("Vehicle not found with id: " + id));
 
         //Resource-Based Authorization

@@ -1,4 +1,4 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.integration;
 
 public record ExternalVehicleInfoDTO(
         String brand,

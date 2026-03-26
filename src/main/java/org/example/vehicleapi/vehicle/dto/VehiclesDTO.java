@@ -1,4 +1,4 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
