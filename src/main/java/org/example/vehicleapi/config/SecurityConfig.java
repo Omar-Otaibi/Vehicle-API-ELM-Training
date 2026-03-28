@@ -29,6 +29,7 @@ public class SecurityConfig{
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless REST APIs csrf
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/createOwner", "/login").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
                 //addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); JWT auth
