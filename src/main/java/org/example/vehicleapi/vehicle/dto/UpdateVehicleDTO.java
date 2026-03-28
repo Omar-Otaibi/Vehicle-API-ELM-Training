@@ -1,4 +1,4 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.dto;
 
 import jakarta.validation.constraints.*;
 

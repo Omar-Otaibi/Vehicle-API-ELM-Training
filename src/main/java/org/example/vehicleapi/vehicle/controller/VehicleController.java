@@ -1,13 +1,19 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.controller;
 
 import jakarta.validation.Valid;
+import org.example.vehicleapi.vehicle.dto.UpdateVehicleDTO;
+import org.example.vehicleapi.vehicle.dto.VehiclesDTO;
+import org.example.vehicleapi.vehicle.integration.ExternalVehicleInfoDTO;
+import org.example.vehicleapi.vehicle.service.VehicleService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -47,7 +53,7 @@ public class VehicleController {
     @PatchMapping("/update/{id}")
     public ResponseEntity<UpdateVehicleDTO> updateVehicle(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateVehicleDTO vehiclesDTO) {
+            @Valid @RequestBody UpdateVehicleDTO vehiclesDTO) throws AccessDeniedException {
 
         //pass the partial DTO to the service
         return ResponseEntity.ok(vehicleService.updateVehicle(id, vehiclesDTO));
@@ -64,6 +70,7 @@ public class VehicleController {
         return ResponseEntity.ok(vehicleService.searchVehicles(search, year, plate,ownerName, pageable));
     }
 
+    @PreAuthorize("authentication.name == 'admin@example.com'")
     @DeleteMapping("/deleteVehicle/{id}")
     public ResponseEntity<String> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicle(id);
@@ -100,5 +107,10 @@ public class VehicleController {
     @GetMapping("/vehicles/owner/{name}")
     public ResponseEntity<List<VehiclesDTO>> getByOwnerName(@PathVariable String name) {
         return ResponseEntity.ok(vehicleService.getVehiclesByOwnerName(name));
+    }
+
+    @GetMapping("/getVehicleStatus/{id}")
+    public ResponseEntity<ExternalVehicleInfoDTO> getVehicleStatus(@PathVariable Long id) throws AccessDeniedException {
+        return ResponseEntity.ok(vehicleService.getVehicleStatus(id));
     }
 }
