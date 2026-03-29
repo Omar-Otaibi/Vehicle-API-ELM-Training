@@ -2,6 +2,7 @@ package org.example.vehicleapi.vehicle.integration;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -14,8 +15,9 @@ public class RestTemplateTestService {
     public Object fetchExternalData(){
         try {
             return restTemplate.getForObject(EXTERNAL_API_URL, Object.class);
-        } catch (Exception e) {
-            throw  new RuntimeException(e);
+        } catch (HttpStatusCodeException e) {
+            throw  new RuntimeException("External API call failed [" + e.getStatusCode() + "]: "
+                    + e.getResponseBodyAsString(), e);
         }
     }
 }
