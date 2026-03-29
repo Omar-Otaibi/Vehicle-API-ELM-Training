@@ -1,6 +1,7 @@
 package org.example.vehicleapi;
 
 import org.example.vehicleapi.exception.ErrorResponse;
+import org.example.vehicleapi.exception.ExternalApiException;
 import org.example.vehicleapi.exception.VehicleNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,5 +51,15 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(ExternalApiException.class)
+    public ResponseEntity<ErrorResponse> handleExternalApiException(ExternalApiException ex) {
+        ErrorResponse response = new ErrorResponse(
+                ex.getStatus().value(),
+                ex.getStatus().getReasonPhrase(),
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(response, ex.getStatus());
     }
 }

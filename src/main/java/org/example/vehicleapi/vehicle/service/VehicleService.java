@@ -2,6 +2,8 @@ package org.example.vehicleapi.vehicle.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.vehicleapi.exception.ExternalApiException;
 import org.example.vehicleapi.exception.VehicleNotFoundException;
 import org.example.vehicleapi.owner.OwnerRepository;
 import org.example.vehicleapi.vehicle.entities.Vehicle;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@Slf4j
 @Transactional
 @RequiredArgsConstructor
 public class VehicleService {
@@ -162,7 +165,8 @@ public class VehicleService {
         ExternalVehicleDataDTO externalData;
         try {
             externalData = feignClient.fetchVehicleStatusById(id);
-        } catch (Exception e) {
+        } catch (ExternalApiException e) {
+            log.warn("External API unavailable for vehicle id={}: {}", id, e.getMessage());
             externalData = new ExternalVehicleDataDTO(String.valueOf(id), 0.0, "API_UNAVAILABLE");
         }
 
