@@ -1,4 +1,5 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.repo;
+import org.example.vehicleapi.vehicle.entities.Vehicle;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -10,25 +11,25 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface VehicleRepository extends JpaRepository<Vehicles, Long>, JpaSpecificationExecutor<Vehicles> {
-    List<Vehicles> findByPlateContaining(String plate);
+public interface VehicleRepository extends JpaRepository<Vehicle, Long>, JpaSpecificationExecutor<Vehicle> {
+    List<Vehicle> findByPlateContaining(String plate);
 
     @EntityGraph(attributePaths = {"owner"})
-    Optional<Vehicles> findByVin(String vin);
+    Optional<Vehicle> findByVin(String vin);
 
-    List<Vehicles> findTop3ByOrderByYearDesc();
+    List<Vehicle> findTop3ByOrderByYearDesc();
 
     //JPQL using Entity name
-    @Query("SELECT v FROM Vehicles v WHERE v.brand = :brand AND v.year >= :year")
-    List<Vehicles> findByBrandAndNewer(@Param("brand") String brand, @Param("year") int year);
+    @Query("SELECT v FROM Vehicle v WHERE v.brand = :brand AND v.year >= :year")
+    List<Vehicle> findByBrandAndNewer(@Param("brand") String brand, @Param("year") int year);
 
     //Native Query Search by model using the actual table name 'vehicles'
     @Query(value = "SELECT * FROM vehicles WHERE model LIKE %:model%", nativeQuery = true)
-    List<Vehicles> findByModelNative(@Param("model") String model);
+    List<Vehicle> findByModelNative(@Param("model") String model);
 
-    List<Vehicles> findDistinctByBrand(String brand);
+    List<Vehicle> findDistinctByBrand(String brand);
 
     //Nested Property: Find vehicles by the Owner's First Name
     //Vehicle -> Owner -> FirstName
-    List<Vehicles> findByOwner_FirstName(String firstName);
+    List<Vehicle> findByOwner_FirstName(String firstName);
 }

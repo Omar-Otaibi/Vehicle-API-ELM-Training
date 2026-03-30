@@ -1,4 +1,4 @@
-package org.example.vehicleapi.vehicle;
+package org.example.vehicleapi.vehicle.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,8 +11,9 @@ import java.time.Instant;
 
 @Data
 @Entity
+@Table(name = "vehicles")
 @EntityListeners(AuditingEntityListener.class)
-public class Vehicles {
+public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
