@@ -12,6 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long>, JpaSpecificationExecutor<Vehicle> {
+    @EntityGraph(attributePaths = {"owner"})
+    Optional<Vehicle> findById(Long id);
+
     List<Vehicle> findByPlateContaining(String plate);
 
     @EntityGraph(attributePaths = {"owner"})
