@@ -6,6 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ExternalVehicleDataDTO(
         String id,
-        @JsonProperty("Price") Double price,
+        @JsonProperty("Price") Long price,
         @JsonProperty("Status") String status
 ) {}

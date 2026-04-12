@@ -188,7 +188,7 @@ public class VehicleService {
             externalData = feignClient.fetchVehicleStatusById(id);
         } catch (ExternalApiException e) {
             log.warn("External API unavailable for vehicle id={}: {}", id, e.getMessage());
-            externalData = new ExternalVehicleDataDTO(String.valueOf(id), 0.0, "API_UNAVAILABLE");
+            externalData = new ExternalVehicleDataDTO(String.valueOf(id), 0L, "API_UNAVAILABLE");
         }
 
         return vehicleMapper.toVehicleStatusDTO(vehicle, externalData);

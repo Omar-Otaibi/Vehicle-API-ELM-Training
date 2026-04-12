@@ -1,9 +1,6 @@
 package org.example.vehicleapi.vehicle.repo;
 import org.example.vehicleapi.vehicle.entities.Vehicle;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -35,4 +32,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long>, JpaSpec
     //Nested Property: Find vehicles by the Owner's First Name
     //Vehicle -> Owner -> FirstName
     List<Vehicle> findByOwner_FirstName(String firstName);
+
+    @Modifying
+    @Query("DELETE FROM Vehicle v WHERE v.year < :year")
+    void deleteVehiclesOlderThan(@Param("year") int year);
 }
