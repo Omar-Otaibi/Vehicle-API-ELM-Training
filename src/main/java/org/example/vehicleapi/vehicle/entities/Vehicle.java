@@ -45,4 +45,10 @@ public class Vehicle {
     @LastModifiedDate
     @Column(nullable = false)
     private Instant lastModified;
+
+    @Column(name = "price")
+    private Long price;
+
+    @Column(name = "status")
+    private String status;
 }
