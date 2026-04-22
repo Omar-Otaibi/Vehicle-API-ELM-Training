@@ -1,0 +1,86 @@
+services:
+
+  # ─────────────────────────────────────────────
+  # Service 1 – SQL Server Database
+  # ─────────────────────────────────────────────
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64           #  <---------------  For apple M4 chip
+    container_name: vehicle-db
+
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "MySecretPass2026"
+
+    ports:
+      - "1433:1433"
+
+    volumes:
+      - mssql-data:/var/opt/mssql  # Persist DB data between restarts
+
+    healthcheck:
+      # Ping the DB every 10 s; app won't start until this passes
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'MySecretPass2026' -Q 'SELECT 1' -No"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s   # Give SQL Server time to initialize on first boot
+
+
+  # ─────────────────────────────────────────────
+  # Service 2 – Spring Boot Application
+  # ─────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: vehicle-app
+
+    ports:
+      - "8080:8080"   # Access the API at http://localhost:8080
+
+    environment:
+      # Override the hardcoded values in application.properties
+      # so the app talks to the 'db' service, not localhost
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://db:1433;databaseName=master;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: SA
+      SPRING_DATASOURCE_PASSWORD: MySecretPass2026
+
+    depends_on:
+      db:
+        condition: service_healthy   # Wait for the DB healthcheck to pass
+
+  # ─────────────────────────────────────────────
+  # Service 3 – TODO try redis later
+  # ─────────────────────────────────────────────
+
+
+# ──────────────────────────────────────────────────────────────────
+# volume – saves SQL Server data files in case of docker compose down
+# ──────────────────────────────────────────────────────────────────
+volumes:
+  mssql-data:
+
+
+
+# ─────────────────────────────────────────────
+# Notes ---------------------------------------
+# ─────────────────────────────────────────────
+# docker compose up	# Starts all services (API and DB) defined in the compose file and attaches them to your terminal so you can watch the live logs. (Press Ctrl+C to stop).
+# docker compose up -d	# The -d stands for detached. It starts everything in the background so you can keep using your terminal window.
+# docker compose up --build	# Forces Docker to rebuild your Java image from the Dockerfile before starting. Use this every time you change your Java code!
+# docker compose down	# Stops the running containers and deletes them, but keeps your permanent data safe in the named volumes.
+# docker compose down -v	# The "Nuclear Option." The -v stands for volumes. This stops everything AND deletes your database hard drive. Use this when you want a completely empty database.
+
+#docker build -t my-api .	#Reads the Dockerfile in the current directory (.) and builds an image. The -t (tag) names it my-api so you can find it later.
+#docker run -p 8080:8080 my-api	  #Starts a container from the my-api image. The -p maps your computer's port 8080 to the container's port 8080.
+#docker run -d --name test my-api	#Runs the container in the background (-d) and explicitly names it test (--name) instead of letting Docker pick a random name.
+#docker run -e KEY="Value" my-api	#The -e injects an Environment Variable into the container. This is how you pass database passwords or memory limits dynamically.
+
+#docker ps	   ### Lists all containers that are currently running right now.
+#docker ps -a	### Lists all containers, including ones that crashed or were stopped. Great for finding out if your app instantly died.
+#docker logs vehicle-backend	### Prints the console logs for a specific container name. Add -f (follow) to stream the logs live (docker logs -f vehicle-backend).
+#docker exec -it vehicle-backend sh	    ### Opens a live terminal inside the running container. It's like SSHing into the container. (Use exit to leave).
+
+#docker system prune -a --volumes   ### safely deletes every single stopped container, unused network, dangling image, and unattached volume on your computer,
