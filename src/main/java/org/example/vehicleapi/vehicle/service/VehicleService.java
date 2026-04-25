@@ -14,6 +14,10 @@ import org.example.vehicleapi.vehicle.integration.ExternalVehicleDataDTO;
 import org.example.vehicleapi.vehicle.integration.ExternalVehicleInfoDTO;
 import org.example.vehicleapi.vehicle.integration.MockApiFeignClient;
 import org.example.vehicleapi.vehicle.mapper.VehicleMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,6 +40,10 @@ public class VehicleService {
     private final VehicleMapper vehicleMapper;
     private final MockApiFeignClient feignClient;
 
+    @Caching(
+            put = {@CachePut(cacheNames = "vehicles", key = "#result.vin()")},
+            evict = {@CacheEvict(value = {"vehicleStatus", "vehicles-by-brand-year", "newest-vehicles"}, allEntries = true)}
+    )
     public VehiclesDTO createVehicle(VehiclesDTO DTO) {
         var owner = ownerRepository.findById(DTO.ownerId())
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
@@ -65,6 +73,8 @@ public class VehicleService {
                 .map(vehicleMapper::toDTO)
                 .toList();
     }
+
+    @Cacheable(value = "newest-vehicles")
     public List<VehiclesDTO> getNewestVehicles() {
         return repository.findTop3ByOrderByYearDesc().stream()
                 .map(vehicleMapper::toDTO)
@@ -72,6 +82,7 @@ public class VehicleService {
     }
 
     // JPQL
+    @Cacheable(value = "vehicles-by-brand-year", key = "#brand + '-' + #year")
     public List<VehiclesDTO> getVehiclesByBrandAndYear(String brand, int minYear) {
         return repository.findByBrandAndNewer(brand, minYear).stream()
                 .map(vehicleMapper::toDTO)
@@ -99,11 +110,13 @@ public class VehicleService {
                 .toList();
     }
 
+    @Cacheable(value = "vehicles", key = "#vin", condition = "#year >= 2020")
     public VehiclesDTO listByVin(String vin){
         Vehicle vehicle = repository.findByVin(vin).orElseThrow(() -> new VehicleNotFoundException("Vehicle not found"));
         return  vehicleMapper.toDTO(vehicle);
     }
 
+    @CacheEvict(value = {"vehicles", "vehicleStatus", "vehicles-by-brand-year", "newest-vehicles"}, allEntries = true)
     public UpdateVehicleDTO updateVehicle(Long id, UpdateVehicleDTO dto) throws AccessDeniedException {
         //check vehicle
         Vehicle existingVehicle = repository.findById(id)
@@ -143,6 +156,8 @@ public class VehicleService {
                 .map(vehicleMapper::toDTO);
     }
 
+    @CacheEvict(value = {"vehicles", "vehicleStatus", "vehicles-by-brand-year", "newest-vehicles"}, allEntries = true,
+    beforeInvocation = true)
     public void deleteVehicle(Long id) {
         if (!repository.existsById(id)) {
             throw new VehicleNotFoundException("Vehicle not found!");
@@ -150,6 +165,12 @@ public class VehicleService {
         repository.deleteById(id);
     }
 
+    /** Delay Test
+     * Security risk if non ownership calls the method after bring cached
+     * the method runs first time and stored in cache
+     * Second time it skips the method ownership check and found in cache
+    */
+    @Cacheable(value = "vehicleStatus", key = "#id", unless = "#result.status == 'API_UNAVAILABLE'")
     public ExternalVehicleInfoDTO getVehicleStatus(Long id) throws AccessDeniedException {
         //Fetch local vehicle
         Vehicle vehicle = repository.findById(id)
@@ -167,7 +188,7 @@ public class VehicleService {
             externalData = feignClient.fetchVehicleStatusById(id);
         } catch (ExternalApiException e) {
             log.warn("External API unavailable for vehicle id={}: {}", id, e.getMessage());
-            externalData = new ExternalVehicleDataDTO(String.valueOf(id), 0.0, "API_UNAVAILABLE");
+            externalData = new ExternalVehicleDataDTO(String.valueOf(id), 0L, "API_UNAVAILABLE");
         }
 
         return vehicleMapper.toVehicleStatusDTO(vehicle, externalData);
