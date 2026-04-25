@@ -1,0 +1,18 @@
+# Exclude the Maven build output – the Docker build runs its own 'mvn package'
+target/
+
+# IDE files – not needed in the image
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Git metadata
+.git/
+.gitignore
+.gitattributes
+
+# Docs
+HELP.md
+README.md
